@@ -1,7 +1,17 @@
 module Containment
   class Cgroup::CPU
-    def initialize
-      raise "Stub!"
+    attr_reader :cgroup
+    def initialize(cgroup)
+      @cgroup = cgroup
+    end
+
+    def rt_period_us
+    end
+
+    def rt_runtime_us
+    end
+
+    def shares
     end
   end
 end

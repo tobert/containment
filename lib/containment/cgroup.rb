@@ -1,3 +1,13 @@
+
+require 'containment/cgroup/blkio'
+require 'containment/cgroup/blkio_throttle'
+require 'containment/cgroup/cpu'
+require 'containment/cgroup/cpuacct'
+require 'containment/cgroup/cpuset'
+require 'containment/cgroup/devices'
+require 'containment/cgroup/memory'
+require 'containment/cgroup/memory_memsw'
+
 module Containment
   class Cgroup
     attr_reader :name
@@ -52,6 +62,30 @@ module Containment
         end
       end
       return children
+    end
+
+    def blkio
+      Containment::Cgroup::BlkIO.new(self)
+    end
+
+    def cpu
+      Containment::Cgroup::CPU.new(self)
+    end
+
+    def cpuacct
+      Containment::Cgroup::CPUAcct.new(self)
+    end
+
+    def cpuset
+      Containment::Cgroup::CPUSet.new(self)
+    end
+
+    def devices
+      Containment::Cgroup::CPUSet.new(self)
+    end
+
+    def memory
+      Containment::Cgroup::Memory.new(self)
     end
 
     def notify_on_release
