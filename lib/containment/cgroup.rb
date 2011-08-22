@@ -5,7 +5,7 @@ module Containment
 
     def initialize(cgroup_name)
       @name = cgroup_name
-      @path = "/cgroup/#{@name}"
+      @path = File.join('/cgroup', @name)
 
       if not Dir.exists?(@path)
         Dir.mkdir(@path)
@@ -22,9 +22,11 @@ module Containment
     # Returns a list of pids attached to the cgroup.
     def tasks
       task_list = []
-      File.open(File.join(@path, 'tasks'), "r") do |tasks|
-        pid = tasks.gets.chomp
-        task_list.push pid
+      File.open(File.join(@path, 'tasks'), "r") do |t|
+        while (task = t.gets)
+          task.chomp!
+          task_list.push task
+        end
       end
       return task_list
     end
