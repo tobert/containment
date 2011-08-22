@@ -13,9 +13,20 @@ may or may not work; I don't care (yet). This should and is intended
 to work fine inside other kinds of virtualization like Xen (including EC2),
 KVM, and VMware.
 
+Most distro kernels in the recent years have shipped with everything
+needed enabled. Notably, the default Linode kernels do not have either
+namespaces or cgroups enabled, so you'll have to switch to pvgrub.
+
 ### Cgroups
 
- - Linux 2.6.24 or higher with CONFIG\_NAMESPACES=y
+ - Linux 2.6.24 or higher with CONFIG\_CGROUPS=y
+ - required: CONFIG\_CGROUP\_NS=y
+ - required: CONFIG_CGROUP_CPUACCT=y
+ - required: CONFIG_CGROUP_MEM_RES_CTLR=y
+ - required: CONFIG_CGROUP_SCHED=y
+ - recommended: CONFIG_BLK_CGROUP=y
+ - optional: CONFIG_CGROUP_DEVICE=y
+ - optional: CONFIG_NET_CLS_CGROUP=m
  - cgroups mounted with all facilities in /cgroup, e.g.
 
     echo "cgroup /cgroup cgroup defaults 2 0" >> /etc/fstab
@@ -41,7 +52,12 @@ From the root of this project:
     require 'containment'
 
     # plain nsfork - the child process is in its own namespace
-    pid = Containment::NS::nsfork()
+    pid = Containment::NS.nsfork()
+    if pid == 0
+        puts "my process id is #{Containment::NS.getpid}"
+    else
+        puts "I am the parent, the child process is #{pid}"
+    end
 
     # still working out how I want this to look ... but something like this
     # get an object for the root cgroup
