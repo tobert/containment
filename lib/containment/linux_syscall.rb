@@ -2,10 +2,13 @@ require 'containment/linux_constants'
 
 # This is gross and disgusting. libffi support is stubbed out and not
 # implemented.
+# The syscall() that's exposed only supports 3-arg sys_clone() since
+# that's all I need and doing full vararg & copy_(to|from)_user would
+# be pretty duanting.
 
 module Containment
   module Linux
-    @syscall_func = lambda { raise "could not syscall - platform probably isn't supported" }
+    @syscall_func = lambda { |a,b,c| raise "could not syscall - platform probably isn't supported" }
 
     #  Libc_so is used to for DL.dlopen
     #  @syscall_getpid is used to test syscall()
@@ -45,18 +48,30 @@ module Containment
     # first try Kernel.syscall (ruby <= 1.8)
     begin
       Kernel.syscall(@syscall_getpid)
-      @syscall_func = lambda {|syscall, flags|
-        Kernel.syscall(syscall, flags)
+      @syscall_func = lambda {|syscall, arg0, arg1|
+        Kernel.syscall(syscall, arg0, arg1)
       }
     rescue NotImplementedError => wtfbbq
       # now try fiddle (ruby >= 1.9.2??)
       begin
         require 'dl'
         require 'fiddle'
-        libc = DL.dlopen(Libc_so)
-        int = Fiddle::TYPE_INT
-        @syscall_func = Fiddle::Function.new(libc['syscall'], [int, int], int)
 
+        # from linux/arch/x86/include/asm/syscalls.h:
+        # long sys_clone(unsigned long, unsigned long, void __user *,
+        #            void __user *, struct pt_regs *);
+        # the last two fields aren't used - the man page says it's ok
+        # to set the first void* to 0 to not set a stack
+        libc = DL.dlopen(Libc_so)
+        @syscall_func = Fiddle::Function.new(
+          libc['syscall'],
+          [
+            Fiddle::TYPE_LONG,
+            Fiddle::TYPE_LONG,
+            Fiddle::TYPE_VOIDP
+          ],
+          Fiddle::TYPE_LONG
+        )
       rescue
         # and finally, libffi - should work everywhere, even jruby??
         begin
@@ -72,13 +87,13 @@ module Containment
     # this is a limited interface to syscall() that doesn't have
     # to mess around with varargs
     module_function
-    def syscall(nr, flags)
-      @syscall_func.call(nr, flags)
+    def syscall(nr, arg0, arg1)
+      @syscall_func.call(nr, arg0, arg1)
     end
 
     begin
-      pid = Containment::Linux::syscall(@syscall_getpid, 0) 
-      #puts pid
+      pid = Containment::Linux::syscall(@syscall_getpid, 0, 0)
+      #puts pid # uncomment for a quick test
     rescue
       raise "Containment::Linux::syscall() failed at bootstrap testing. Is your platform supported?"
     end

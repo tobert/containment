@@ -1,4 +1,5 @@
 require 'containment/linux_constants'
+require 'containment/linux_syscall'
 
 # TODO: it might be best to have this fall back to regular fork()
 # on non-linux platforms or linux kernels without NS support to
@@ -16,10 +17,8 @@ module Containment
     if RUBY_PLATFORM == "x86_64-linux"
       @@sys_clone_nr = Containment::Linux::ASM_X86_64::Unistd::NR_CLONE
     # TODO: I don't have a 32bit box handy, make sure this is right ...
-    elsif RUBY_PLATFORM == "i386-linux"
-      @@sys_clone_nr = Containment::Linux::ASM_X86_32::Unistd::NR_CLONE
     else
-      raise "#{RUBY_PLATFORM} is not supported by this module!"
+      @@sys_clone_nr = Containment::Linux::ASM_X86_32::Unistd::NR_CLONE
     end
 
     # namespace enabled fork()-ish function
@@ -45,7 +44,7 @@ module Containment
     # totally custom sets of flags
     def sys_clone(flags)
       # see clone(2) for a description of SYS_clone
-      syscall(@@sys_clone_nr, flags, 0)
+      Containment::Linux::syscall(@@sys_clone_nr, flags, 0)
     end
 
   end
