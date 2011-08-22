@@ -4,7 +4,14 @@ module Containment
     attr_reader :path
 
     def initialize(cgroup_name)
-      @name = cgroup_name
+      if cgroup_name.start_with?('/cgroup') then
+        parts = cgroup_name.split(/\/+/)
+        parts.delete_at(0)
+        parts.delete_at(0)
+        @name = File.join(parts)
+      else
+        @name = cgroup_name
+      end
       @path = File.join('/cgroup', @name)
 
       if not Dir.exists?(@path)
@@ -34,7 +41,7 @@ module Containment
     # Returns a list of child cgroups.
     def children
       children = []
-      Dir.open(@path) do |file|
+      Dir.foreach(@path) do |file|
         next if file.start_with?(".")
 
         cpath = File.join(@path, file)
@@ -44,6 +51,7 @@ module Containment
           children.push(cg)
         end
       end
+      return children
     end
 
     def notify_on_release
