@@ -30,6 +30,12 @@ KVM, and VMware.
 
 None at the moment. Once I'm happy with it, I'll publish a gem and update this.
 
+## Examples
+
+From the root of this project:
+
+    sudo ruby -I./lib examples/nsfork_only.rb
+
 ## Usage
 
     require 'containment'

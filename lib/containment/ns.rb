@@ -15,10 +15,18 @@ module Containment
     # enough for now, but is nowhere near ideal.
     
     if RUBY_PLATFORM == "x86_64-linux"
-      @@sys_clone_nr = Containment::Linux::ASM_X86_64::Unistd::NR_CLONE
+      @sys_clone_nr  = Containment::Linux::ASM_X86_64::Unistd::NR_clone
+      @sys_getpid_nr = Containment::Linux::ASM_X86_64::Unistd::NR_getpid
     # TODO: I don't have a 32bit box handy, make sure this is right ...
     else
-      @@sys_clone_nr = Containment::Linux::ASM_X86_32::Unistd::NR_CLONE
+      @sys_clone_nr  = Containment::Linux::ASM_X86_32::Unistd::NR_clone
+      @sys_getpid_nr = Containment::Linux::ASM_X86_32::Unistd::NR_getpid
+    end
+
+    # Process.pid lies. Go to the source for truth.
+    module_function
+    def getpid
+      Containment::Linux::syscall(@sys_getpid_nr, 0, 0)
     end
 
     # namespace enabled fork()-ish function
@@ -44,7 +52,7 @@ module Containment
     # totally custom sets of flags
     def sys_clone(flags)
       # see clone(2) for a description of SYS_clone
-      Containment::Linux::syscall(@@sys_clone_nr, flags, 0)
+      Containment::Linux::syscall(@sys_clone_nr, flags, 0)
     end
 
   end

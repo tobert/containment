@@ -43,14 +43,16 @@ module Containment
     module ASM_X86_32
       # extracted from /usr/include/asm/unistd_32.h
       module Unistd
-        NR_CLONE = 120
+        NR_clone  = 120
+        NR_getpid = 20
       end
     end
 
     module ASM_X86_64
       # extracted from /usr/include/asm/unistd_64.h
       module Unistd
-        NR_CLONE = 56
+        NR_clone  = 56
+        NR_getpid = 39
       end
     end
   end

@@ -5,12 +5,15 @@ require 'containment/linux_constants'
 # The syscall() that's exposed only supports 3-arg sys_clone() since
 # that's all I need and doing full vararg & copy_(to|from)_user would
 # be pretty duanting.
+#
+# It happens to work for getpid too, which is quite handy since Ruby
+# caches Process.pid which is totally wrong for clone.
 
 module Containment
   module Linux
     @syscall_func = lambda { |a,b,c| raise "could not syscall - platform probably isn't supported" }
 
-    #  Libc_so is used to for DL.dlopen
+    #  @libc_so is used to for DL.dlopen
     #  @syscall_getpid is used to test syscall()
     #  @syscall_func is the backend function
 
@@ -20,28 +23,24 @@ module Containment
       # 32-bit untested AFAIK
       when 4
         if File.exists?("/lib32/libc.so.6")
-          Libc_so = "/lib32/libc.so.6"
+          @libc_so = "/lib32/libc.so.6"
         end
 
-        # from /usr/include/asm/unistd_32.h
-        @syscall_getpid = 20
+        # used for testing at end of module init
+        @syscall_getpid = Containment::Linux::ASM_X86_32::Unistd::NR_getpid
 
       # 64-bit - all of my machines & vm's are currently x86_64
       when 8
         if File.exists?("/lib64/libc.so.6")
-          Libc_so = "/lib64/libc.so.6"
+          @libc_so = "/lib64/libc.so.6"
         end
 
-        # from /usr/include/asm/unistd_32.h
-        @syscall_getpid = 39
+        # used for testing at end of module init
+        @syscall_getpid = Containment::Linux::ASM_X86_64::Unistd::NR_getpid
 
-      # fall back to best-guess & asm-generic which probably
-      # doesn't work anywhere :(
+      # fall back the usual dir/symlink, probably works most of the time
       else
-        Libc_so = "/lib/libc.so.6"
-
-        # from /usr/include/asm-generic/unistd.h
-        @syscall_getpid = 172
+        @libc_so = "/lib/libc.so.6"
     end
 
     # detect a method for making syscalls
@@ -62,7 +61,7 @@ module Containment
         #            void __user *, struct pt_regs *);
         # the last two fields aren't used - the man page says it's ok
         # to set the first void* to 0 to not set a stack
-        libc = DL.dlopen(Libc_so)
+        libc = DL.dlopen(@libc_so)
         @syscall_func = Fiddle::Function.new(
           libc['syscall'],
           [
