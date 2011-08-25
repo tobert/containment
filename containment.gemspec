@@ -7,8 +7,8 @@ require "containment/version"
 Gem::Specification.new do |s|
   s.name        = "containment"
   s.version     = containment::VERSION
-  s.authors     = ["Rob Sobers"]
-  s.email       = ["rsobers@gmail.com"]
+  s.authors     = ["Al Tobey"]
+  s.email       = ["tobert@gmail.com"]
   s.homepage    = "https://github.com/tobert/containment"
   s.summary     = %q{Linux process containers}
   s.description = %q{
