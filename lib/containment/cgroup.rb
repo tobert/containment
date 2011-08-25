@@ -1,19 +1,14 @@
 
-require 'containment/cgroup/blkio'
-require 'containment/cgroup/blkio_throttle'
-require 'containment/cgroup/cpu'
-require 'containment/cgroup/cpuacct'
-require 'containment/cgroup/cpuset'
-require 'containment/cgroup/devices'
-require 'containment/cgroup/memory'
-require 'containment/cgroup/memory_memsw'
-
 module Containment
   class Cgroup
     attr_reader :name
     attr_reader :path
 
     def initialize(cgroup_name)
+      if not File.directory?("/cgroup/tasks")
+        raise "Cannot read /cgroup/tasks. Cgroups is not available."
+      end
+
       if cgroup_name.start_with?('/cgroup') then
         parts = cgroup_name.split(/\/+/)
         parts.delete_at(0)
@@ -24,7 +19,7 @@ module Containment
       end
       @path = File.join('/cgroup', @name)
 
-      if not Dir.exists?(@path)
+      if not File.directory?(@path)
         Dir.mkdir(@path)
       end
     end
@@ -65,27 +60,57 @@ module Containment
     end
 
     def blkio
-      Containment::Cgroup::BlkIO.new(self)
+      obj = Containment::Cgroup::BlkIO.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def cpu
-      Containment::Cgroup::CPU.new(self)
+      obj = Containment::Cgroup::CPU.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def cpuacct
-      Containment::Cgroup::CPUAcct.new(self)
+      obj = Containment::Cgroup::CPUAcct.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def cpuset
-      Containment::Cgroup::CPUSet.new(self)
+      obj = Containment::Cgroup::CPUSet.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def devices
-      Containment::Cgroup::CPUSet.new(self)
+      obj = Containment::Cgroup::Devices.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def memory
-      Containment::Cgroup::Memory.new(self)
+      obj = Containment::Cgroup::Memory.new(self)
+      if block_given?
+        yield obj
+      else
+        return obj
+      end
     end
 
     def notify_on_release

@@ -1,7 +1,7 @@
 require 'containment/cgroup'
 
 module Containment
-  class Cgroup::BlkIO < Containment::Cgroup
+  class BlkIO
     attr_reader :cgroup
 
     def initialize(cgroup)
@@ -28,7 +28,7 @@ module Containment
     end
 
     def throttle
-      Containment::Cgroup::BlkIO::Throttle.new(@cgroup)
+      #Containment::Cgroup::BlkIO::Throttle.new(@cgroup)
     end
 
     def weight
