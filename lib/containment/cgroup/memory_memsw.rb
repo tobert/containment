@@ -1,19 +1,21 @@
 module Containment
-  class Cgroup::CPUAcct
+  class Cgroup::Memory
     attr_reader :cgroup
     def initialize(cgroup)
       @cgroup = cgroup
     end
 
-    def stat
+    def failcnt
     end
 
-    def usage
+    def limit_in_bytes
     end
 
-    def usage_percpu
+    def max_usage_in_bytes
     end
 
+    def usage_in_bytes
+    end
   end
 end
 

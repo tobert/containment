@@ -1,7 +1,17 @@
 module Containment
   class Cgroup::Devices
-    def initialize
-      raise "Stub!"
+    attr_reader :cgroup
+    def initialize(cgroup)
+      @cgroup = cgroup
+    end
+
+    def allow
+    end
+
+    def deny
+    end
+
+    def list
     end
   end
 end
