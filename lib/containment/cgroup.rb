@@ -1,11 +1,14 @@
+require 'containment/util'
 
-module Containment
+module Containment 
   class Cgroup
+    include Containment::Util
+
     attr_reader :name
     attr_reader :path
 
     def initialize(cgroup_name)
-      if not File.directory?("/cgroup/tasks")
+      if not File.readable?("/cgroup/tasks")
         raise "Cannot read /cgroup/tasks. Cgroups is not available."
       end
 
@@ -114,25 +117,18 @@ module Containment
     end
 
     def notify_on_release
-      raise "Stub!"
+      slurp_int(File.join(@path, 'notify_on_release')) do |val|
+        if val.to_i == 0
+          return false
+        else
+          return true
+        end
+      end
     end
 
     def release_agent
       raise "Stub!"
     end
-
-    def cgroup_clone_children
-      raise "Stub!"
-    end
-
-    def cgroup_event_control
-      raise "Stub!"
-    end
-
-    def cgroup_procs
-      raise "Stub!"
-    end
-
   end
 end
 
