@@ -1,16 +1,7 @@
-
 require 'containment/version'
-
+require 'containment/constants'
 require 'containment/ns'
-
 require 'containment/cgroup'
-require 'containment/cgroup/blkio'
-require 'containment/cgroup/cpu'
-require 'containment/cgroup/cpuacct'
-require 'containment/cgroup/cpuset'
-require 'containment/cgroup/devices'
-require 'containment/cgroup/memory'
-require 'containment/cgroup/blkio_throttle'
-require 'containment/cgroup/memory_memsw'
+require 'containment/container'
 
-# vim: et ts=2 sw=2 ai smarttab
+# vim: et ts=2 sw=2 ai smarttab ft=ruby

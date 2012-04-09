@@ -1,11 +1,11 @@
-#!/bin/env ruby
-#
-# ruby -I./lib examples/forever_alone.rb
+#!/usr/bin/env ruby
+
+$:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'containment'
 
-container = Containment.new("forever_alone")
+cg = Containment::Cgroup.new(:forever_alone)
 
-container.system("ps -ef")
+cg.system("ps -ef")
 
 # vim: et ts=2 sw=2 ai smarttab
