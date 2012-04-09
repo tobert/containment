@@ -10,8 +10,8 @@ module Containment
     DEFAULT_SIGNAL = Signal.list["QUIT"]
       
       def initialize(*args)
-        @p2c_r, @p2c_w = IO.pipe "ASCII-8BIT", "ASCII-8BIT"
-        @c2p_r, @c2p_w = IO.pipe "ASCII-8BIT", "ASCII-8BIT"
+        @p2c_r, @p2c_w = IO.pipe
+        @c2p_r, @c2p_w = IO.pipe
         @console_r, @console_w = IO.pipe
       end
 
