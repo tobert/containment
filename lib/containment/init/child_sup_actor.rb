@@ -29,7 +29,7 @@ module Containment
 
           result = case action
             when :spawn
-              subject.extend ChildProcess
+              subject.extend ChildActor
               subject.spawn
               @children[subject.key] = subject
               subject.info

@@ -1,17 +1,7 @@
 module Containment
   class Init
     module ChildSupProxy
-      def spawn(*args)
-        argv = args.flatten
-
-        if argv[0].kind_of? Hash
-          env = argv.shift
-        else
-          env = ENV.to_hash
-        end
-
-        child = ChildProxy.new env, argv.shift, argv
-
+      def spawn(child)
         push @p2c_w, [:spawn, child, nil]
         pull @c2p_r
       end
