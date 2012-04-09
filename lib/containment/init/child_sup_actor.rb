@@ -50,6 +50,8 @@ module Containment
           push @c2p_w, result
         end
 
+        STDERR.puts "EXITING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+
         @p2c_r.close
         @c2p_w.close
       end

@@ -35,9 +35,14 @@ module Containment
         end
       end
 
+      def output?
+        Kernel.select [@console_r], [], [], 0
+      end
+
       def proxy!
         @c2p_w.close
         @p2c_r.close
+        @console_w.close
         STDERR.puts "Created ChildSupProxy"
         self.extend ChildSupProxy
         push @p2c_w, {:startup => true}
@@ -46,6 +51,7 @@ module Containment
       def actor!
         @c2p_r.close
         @p2c_w.close
+        @console_r.close
         STDERR.puts "Created ChildSupActor"
         self.extend ChildSupActor
         pull @p2c_r
