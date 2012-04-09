@@ -1,6 +1,6 @@
 module Containment
   class Init
-    module ChildSupProxy
+    module InitProxy
       def spawn(child)
         push @p2c_w, [:spawn, child, nil]
         pull @c2p_r

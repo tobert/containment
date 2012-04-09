@@ -1,7 +1,7 @@
+require 'containment/init/init_actor'
+require 'containment/init/init_proxy'
 require 'containment/init/child_actor'
 require 'containment/init/child_proxy'
-require 'containment/init/child_sup_actor'
-require 'containment/init/child_sup_proxy'
 
 module Containment
   #
@@ -10,9 +10,9 @@ module Containment
   #
   # | root namespace & cgroup        | child namespace & cgroup    |
   # |--------------------------------|-----------------------------|
-  # |                                |                             |
-  # | <container> -> <init><proxy> --|--> <actor>.spawn            |
-  # |                         |      |       /      \              |
+  # | <container>                    |                             |
+  # |      <init>---><init  proxy> --|--> <init actor>.spawn       |
+  # |                         |      |       /           /         |
   # |                <child proxy> <-|-------     <child process>  |
   # |________________________________|_____________________________|
   #
@@ -94,8 +94,8 @@ module Containment
       @c2p_w.close
       @p2c_r.close
       @console_w.close
-      STDERR.puts "Created ChildSupProxy"
-      self.extend ChildSupProxy
+      STDERR.puts "Created InitProxy"
+      self.extend InitProxy
       push @p2c_w, {:startup => true}
     end
 
@@ -103,8 +103,8 @@ module Containment
       @c2p_r.close
       @p2c_w.close
       @console_r.close
-      STDERR.puts "Created ChildSupActor"
-      self.extend ChildSupActor
+      STDERR.puts "Created InitActor"
+      self.extend InitActor
       pull @p2c_r
     end
   end

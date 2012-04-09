@@ -3,11 +3,11 @@ module Containment
     #
     # This is the "init" process inside the container. It gets commands marshaled over
     # a unix pipe and responds over another one.
-    # This is meant to be an extension to ChildSupProxy inside the "init" process.
+    # This is meant to be an extension to InitProxy inside the "init" process.
     #
     # TODO: add signal handlers
     #
-    module ChildSupActor
+    module InitActor
       #
       # Run the infinite init process.
       #
