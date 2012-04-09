@@ -1,7 +1,19 @@
+require 'rbconfig'
 
 module Containment
-  module Linux
+  # should work on both jruby and yarv
+  case RbConfig::CONFIG['target_cpu']
+    when "amd64"
+    when "x86_64"
+      PLATFORM = :x86_64
+    when /\Ai\d86\Z/
+      PLATFORM = :x86_32
+    else
+      raise "could not determine the platform, required to pick the right syscall numbers"
+    end
+  end
 
+  module Linux
     # extracted from /usr/include/linux/sched.h
     module Sched
       CSIGNAL              = 0x000000ff # signal mask to be sent at exit
@@ -29,30 +41,23 @@ module Containment
       CLONE_NEWNET         = 0x40000000 # New network namespace
       CLONE_IO             = 0x80000000 # Clone io context
     end
+  end
 
-    # this doesn't track the headers exactly since platforms end up
-    # with fixed paths in /usr/include and I might want to support ARM
-    # or similar up-and-coming processors someday
-    module ASM_Generic
-      # extracted from /usr/include/asm-generic/signal.h
-      module Signal
-        SIGCHLD = 17
-      end
-    end
 
-    module ASM_X86_32
-      # extracted from /usr/include/asm/unistd_32.h
-      module Unistd
-        NR_clone  = 120
-        NR_getpid = 20
-      end
-    end
-
-    module ASM_X86_64
-      # extracted from /usr/include/asm/unistd_64.h
-      module Unistd
-        NR_clone  = 56
-        NR_getpid = 39
+  module ASM
+    module Unistd
+      if PLATFORM == :x86_64
+        # extracted from /usr/include/asm/unistd_64.h
+        module Unistd
+          NR_clone  = 56
+          NR_getpid = 39
+        end
+      elsif PLATFORM == :x86_32
+        # extracted from /usr/include/asm/unistd_32.h
+        module Unistd
+          NR_clone  = 120
+          NR_getpid = 20
+        end
       end
     end
   end
