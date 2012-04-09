@@ -1,18 +1,6 @@
-require 'rbconfig'
+require 'ffi'
 
 module Containment
-  # should work on both jruby and yarv
-  case RbConfig::CONFIG['target_cpu']
-    when "amd64"
-    when "x86_64"
-      PLATFORM = :x86_64
-    when /\Ai\d86\Z/
-      PLATFORM = :x86_32
-    else
-      raise "could not determine the platform, required to pick the right syscall numbers"
-    end
-  end
-
   module Linux
     # extracted from /usr/include/linux/sched.h
     module Sched
@@ -46,18 +34,20 @@ module Containment
 
   module ASM
     module Unistd
-      if PLATFORM == :x86_64
-        # extracted from /usr/include/asm/unistd_64.h
-        module Unistd
+      if FFI::Platform::OS == "linux"
+        if FFI::Platform::ARCH == "x86_64"
+          # extracted from /usr/include/asm/unistd_64.h
           NR_clone  = 56
           NR_getpid = 39
-        end
-      elsif PLATFORM == :x86_32
-        # extracted from /usr/include/asm/unistd_32.h
-        module Unistd
+        elsif FFI::Platform::ARCH == "i386"
+          # extracted from /usr/include/asm/unistd_32.h
           NR_clone  = 120
           NR_getpid = 20
+        else
+          raise "Containment currently only supports Linux x86_64 and i386."
         end
+      else
+        raise "Containment is only supported on Linux!"
       end
     end
   end
