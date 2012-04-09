@@ -1,10 +1,20 @@
 module Containment 
   class Cgroup
     attr_reader :name, :path
+    @@root = '/cgroup'
 
-    def initialize(name, path)
+    def self.root=(root)
+      @@root = root
+    end
+
+    def initialize(name, path=nil)
       @name = name
-      @path = path
+
+      if path.nil?
+        @path = File.join(@@root, name)
+      else
+        @path = path
+      end
 
       if not File.directory?(@path)
         Dir.mkdir(@path)
