@@ -9,7 +9,7 @@ module Containment
         raise "spawn() can only be called once" if @pid
 
         @started = Time.now
-        @pid = Kernel.spawn @env, @command, @argv
+        @pid = Kernel.spawn @env, @command, *@argv
         STDERR.puts "spawned pid #{@pid} [#{@command} #{@argv.join(' ')}] with env #{@env.inspect}"
         @key = [(@started.to_f * 1_000_000).round, @pid].pack('QQ').unpack('H*')
         @pid

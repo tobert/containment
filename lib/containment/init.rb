@@ -28,6 +28,7 @@ module Containment
       @p2c_r, @p2c_w = IO.pipe
       @c2p_r, @c2p_w = IO.pipe
       @console_r, @console_w = IO.pipe
+      @console_thread = nil
     end
 
     #
@@ -36,14 +37,6 @@ module Containment
     # @param [Object] ruby object to serialize with Marshal
     #
     def push(io, data)
-      # TEMPORARY debugging code ...
-      case io
-      when @p2c_r ; puts(">IO(#{Containment::Syscall.getpid}): p2c_r")
-      when @p2c_w ; puts(">IO(#{Containment::Syscall.getpid}): p2c_w")
-      when @c2p_r ; puts(">IO(#{Containment::Syscall.getpid}): c2p_r")
-      when @c2p_w ; puts(">IO(#{Containment::Syscall.getpid}): c2p_w")
-      end
-
       packet = Marshal.dump data
       lenbytes = [packet.bytesize].pack(LEN_PACK)
       io.write lenbytes
@@ -58,24 +51,11 @@ module Containment
     # @return [Object] deserialized data
     #
     def pull(io)
-      # TEMPORARY debugging code ...
-      case io
-      when @p2c_r ; puts("<IO(#{Containment::Syscall.getpid}): p2c_r")
-      when @p2c_w ; puts("<IO(#{Containment::Syscall.getpid}): p2c_w")
-      when @c2p_r ; puts("<IO(#{Containment::Syscall.getpid}): c2p_r")
-      when @c2p_w ; puts("<IO(#{Containment::Syscall.getpid}): c2p_w")
-      end
       lenbytes = io.read LEN_BYTES
-
-      # TEMPORARY: trying to debug why the second call to pull() from the top
-      # process always fails on eof ...
-      if lenbytes.nil?
-        raise "Impossibly closed!" if io.closed?
-        raise "Impossible EOF!" if io.eof?
-      end
 
       # this showed up in early testing ...
       raise "BUG! - read from a pipe should never EOF" if lenbytes.nil?
+
       cmdlen = lenbytes.unpack(LEN_PACK)[0]
       packet = io.read cmdlen
       if packet.bytesize == cmdlen
@@ -86,22 +66,24 @@ module Containment
       end
     end
 
-    def output?
-      Kernel.select [@console_r], [], [], 0
-    end
-
     def proxy!
-      @c2p_w.close
       @p2c_r.close
+      @c2p_w.close
       @console_w.close
       STDERR.puts "Created InitProxy"
       self.extend InitProxy
+
+      @console_thread = Thread.new do
+        @console_r.each_line do |line|
+          STDERR.print line
+        end
+      end
       push @p2c_w, {:startup => true}
     end
 
     def actor!
-      @c2p_r.close
       @p2c_w.close
+      @c2p_r.close
       @console_r.close
       STDERR.puts "Created InitActor"
       self.extend InitActor

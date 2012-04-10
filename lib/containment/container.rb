@@ -14,12 +14,13 @@ module Containment
       @init = Init.new
 
       pid = Containment.nsfork @nsflags
-      STDERR.puts "forked(#{$$} -> #{pid})!"
       if pid == 0
+        STDERR.puts "(child) nsforked(#{$$} -> #{pid})!"
         @init.actor!
         @init.run
         abort "this must never return!"
       else
+        STDERR.puts "(parent) nsforked(#{$$} -> #{pid})!"
         @cgroup.attach pid
         @init.proxy!
       end
