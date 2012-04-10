@@ -59,7 +59,6 @@ module Containment
       cmdlen = lenbytes.unpack(LEN_PACK)[0]
       packet = io.read cmdlen
       if packet.bytesize == cmdlen
-        STDERR.puts "Pulled: #{Marshal.load(packet).inspect}"
         Marshal.load packet
       else
         raise "Corrupt/truncated packet!: #{packet.inspect}"
@@ -70,14 +69,19 @@ module Containment
       @p2c_r.close
       @c2p_w.close
       @console_w.close
-      STDERR.puts "Created InitProxy"
       self.extend InitProxy
 
+      # placeholder: for now, continually read all of the output from the
+      # contained process and print it to stderr ... eventually this should
+      # go to a useful logfile/channel and have ways to differentiate what
+      # is producing the output, likely by rebinding stdio in the child process
+      # with pipes and prefixing output with the key before publishing
       @console_thread = Thread.new do
         @console_r.each_line do |line|
           STDERR.print line
         end
       end
+
       push @p2c_w, {:startup => true}
     end
 
@@ -85,7 +89,6 @@ module Containment
       @p2c_w.close
       @c2p_r.close
       @console_r.close
-      STDERR.puts "Created InitActor"
       self.extend InitActor
       pull @p2c_r
     end
