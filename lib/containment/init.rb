@@ -42,7 +42,6 @@ module Containment
       io.write lenbytes
       io.write packet
       io.flush
-      Thread.pass
     end
 
     #
@@ -81,16 +80,15 @@ module Containment
           STDERR.print line
         end
       end
-
-      push @p2c_w, {:startup => true}
     end
 
     def actor!
       @p2c_w.close
+      @p2c_r.close_on_exec = true
       @c2p_r.close
+      @c2p_w.close_on_exec = true
       @console_r.close
       self.extend InitActor
-      pull @p2c_r
     end
   end
 end

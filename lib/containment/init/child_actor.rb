@@ -7,10 +7,28 @@ module Containment
       #
       def spawn
         raise "spawn() can only be called once" if @pid
+        
+        @stdin_r, @stdin    = IO.pipe
+        @stdout,  @stdout_w = IO.pipe
+        @stderr,  @stderr_w = IO.pipe
 
         @started = Time.now
-        @pid = Kernel.spawn @env, @command, *@argv
-        STDERR.puts "spawned pid #{@pid} [#{@command} #{@argv.join(' ')}] with env #{@env.inspect}"
+
+        # BUG / TODO: why is this hanging!??!?
+        STDERR.puts "about to: [#{@command} #{@argv.join(' ')}] with env #{@env.inspect}"
+        @pid = Kernel.spawn(@env, @command, *@argv,
+          :in  => @stdin_r,
+          :out => @stdout_w,
+          :err => @stderr_w,
+        )
+        STDERR.puts "spawned pid #{@pid}"
+
+        # TODO: set up forwarding of io handles of child to the parent proxy over @console_w with a prefix
+
+        @stdin_r.close
+        @stdout_w.close
+        @stderr_w.close
+
         @key = [(@started.to_f * 1_000_000).round, @pid].pack('QQ').unpack('H*')
         @pid
       end

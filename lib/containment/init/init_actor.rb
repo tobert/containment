@@ -14,6 +14,7 @@ module Containment
       def run
         @children = {}
 
+        $stdin.reopen('/dev/null')
         $stdout.reopen(@console_w)
         $stderr.reopen(@console_w)
         
@@ -47,6 +48,7 @@ module Containment
               break
           end # case action
 
+          STDERR.puts "push #{@c2p_w}, #{result.inspect}"
           push @c2p_w, result
         end
 

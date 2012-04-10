@@ -13,13 +13,23 @@ module Containment
       @nsflags = nsflags
       @init = Init.new
 
+      # temporary, dangerous
+      # will reimplement this with an ffi binding to the mknod function
+      # and run it inside the container before dropping privileges
+      %w[/dev/null /dev/zero /dev/console].each do |dev|
+        unless File.exists? File.join(@root, dev)
+          system "cp -a #{dev} #{File.join(@root, dev)}"
+        end
+      end
+
       pid = Containment.nsfork @nsflags
       if pid == 0
         STDERR.puts "(child) nsforked(#{$$} -> #{pid})!"
+        Dir.chroot @root
         @init.actor!
         @init.run
         abort "this must never return!"
-      else
+      elsif pid
         STDERR.puts "(parent) nsforked(#{$$} -> #{pid})!"
         @cgroup.attach pid
         @init.proxy!
